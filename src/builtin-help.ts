@@ -222,3 +222,19 @@ export function builtinHelpFor(command: string): readonly string[] | null {
 export function wantsHelp(args: readonly string[]): boolean {
   return args.includes('--help') || args.includes('-h');
 }
+
+/**
+ * True when THIS argument is the help flag, rather than one appearing later.
+ *
+ * The distinction decides whether `speko-cli agents bogus --help` is a request
+ * for the group listing or a typo. It is a typo, and answering it with the
+ * listing and exit 0 would hide the mistake — the caller asked about `bogus`,
+ * which does not exist, and a trailing `--help` does not make it exist.
+ *
+ * `wantsHelp` scans the whole argument list, which is right for a hand-written
+ * command (its flags are its own) and wrong for choosing between a group and a
+ * subcommand.
+ */
+export function isHelpFlag(arg: string | undefined): boolean {
+  return arg === '--help' || arg === '-h';
+}

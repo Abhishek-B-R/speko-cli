@@ -83,6 +83,42 @@ speko-cli logs <session_id>                           # why a call failed
 a prompt change actually altered behaviour — a diff cannot show that an agent
 stopped confirming before it booked.
 
+## Proving a prompt change did not break the agent
+
+\`\`\`bash
+speko-cli eval generate --agent <id>            # propose a suite; prints it, saves nothing
+speko-cli eval generate --agent <id> --persist  # keep it
+speko-cli eval run --agent <id>                 # run it; exits 6 on a regression
+speko-cli eval trends --agent <id>              # pass rate over time
+\`\`\`
+
+A voice regression is invisible to a diff, a type check and a unit test. If you
+change a system prompt, run the suite before reporting the change as done.
+\`eval run\` exits **6** on a failing case, distinct from 1, so a script can tell a
+broken agent from a broken network.
+
+## Before choosing a provider
+
+\`\`\`bash
+speko-cli bench stt --language nb     # ranked by word error rate
+speko-cli bench llm                   # ranked by measured latency
+speko-cli bench session <session_id>  # what one call actually ran on
+\`\`\`
+
+The stage boards need no credential; \`bench session\` does, because a session
+belongs to a workspace. \`—\` means unmeasured, never zero — do not read a
+missing cost as free.
+
+## When something fails
+
+\`\`\`bash
+speko-cli doctor                            # credit, provider reachability, scopes, last failure
+speko-cli explain INSUFFICIENT_CREDITS      # what a code means, and whether to retry
+\`\`\`
+
+Run \`doctor\` before debugging a failing call — it exits non-zero only when
+something will actually stop a call working, so it is usable as a precondition.
+
 ## Constraints that fail silently
 
 These produce opaque errors rather than validation messages, so check them
@@ -100,8 +136,9 @@ before debugging anything else:
 · \`5\` quota · \`6\` eval regression. Add \`--json\` to any command for
 machine-readable output.
 
-Docs: https://docs.speko.dev — machine-readable index at
-https://docs.speko.dev/llms.txt, and any page with \`.md\` appended returns
+Docs: https://docs.speko.ai/cli/overview — the CLI's own pages, including
+evals, benchmarks and exit codes. Machine-readable index of the whole site at
+https://docs.speko.ai/llms.txt, and any page with \`.md\` appended returns
 markdown.
 `;
 }

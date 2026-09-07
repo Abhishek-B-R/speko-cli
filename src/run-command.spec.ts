@@ -160,3 +160,15 @@ describe('responseListKey in the generated table', () => {
     expect(COMMANDS.find((c) => c.operationId === 'listAgents')?.responseListKey).toBeNull();
   });
 });
+
+describe('group help', () => {
+  it('treats --help on a group as the listing request it is', () => {
+    // `speko-cli agents --help` used to print `Unknown command: speko-cli
+    // agents --help`, then the listing anyway, and exit 2 — answering the
+    // question while insisting it had not understood it. The most natural way
+    // to discover a group led with an error.
+    const { command, groupCommands } = findCommand('agents', '--help');
+    expect(command).toBeNull();
+    expect(groupCommands.length).toBeGreaterThan(0);
+  });
+});

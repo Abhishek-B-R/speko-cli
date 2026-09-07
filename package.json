@@ -1,6 +1,6 @@
 {
   "name": "@spekoai/cli",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Speko command-line interface: sign in, build and operate voice agents from the terminal",
   "license": "MIT",
   "author": "Speko",

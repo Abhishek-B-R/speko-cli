@@ -72,3 +72,13 @@ describe('wantsHelp', () => {
     expect(wantsHelp(['logs', 'sess_help'])).toBe(false);
   });
 });
+
+describe('wantsHelp', () => {
+  it('is what makes `<group> --help` a listing rather than an error', () => {
+    expect(wantsHelp(['--help'])).toBe(true);
+    expect(wantsHelp(['-h'])).toBe(true);
+    expect(wantsHelp(['list', '--help'])).toBe(true);
+    expect(wantsHelp(['list'])).toBe(false);
+    expect(wantsHelp([])).toBe(false);
+  });
+});

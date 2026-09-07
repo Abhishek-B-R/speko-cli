@@ -3,7 +3,7 @@
 import { ApiError, apiFetch, NotSignedInError } from './api-client.js';
 import { formatDeviceRows, listDevices, revokeAllDevices, revokeDevice } from './auth-commands.js';
 import { fetchBench, formatBench, formatSessionBench, type SessionStack } from './bench.js';
-import { builtinHelpFor, wantsHelp } from './builtin-help.js';
+import { builtinHelpFor, isHelpFlag, wantsHelp } from './builtin-help.js';
 import {
   buildCallBody,
   followEvents,
@@ -820,6 +820,24 @@ export async function run(argv: readonly string[]): Promise<ExitCode> {
       }
 
       if (groupCommands.length > 0) {
+        /**
+         * `speko-cli agents --help` is a request for the group listing, not a
+         * command called `--help`. Matched on `args[1]` alone: a help flag
+         * appearing LATER belongs to a subcommand, and
+         * `speko-cli agents bogus --help` is a typo that must still fail.
+         *
+         * It used to fall through to the unknown-command branch below: it
+         * printed `Unknown command: speko-cli agents --help`, then the listing
+         * anyway, and exited 2. So the most natural way to discover a group led
+         * with an error, which is the same trap `login --help` fell into — the
+         * difference being that this one answered the question while insisting
+         * it had not understood it.
+         */
+        if (isHelpFlag(args[1])) {
+          for (const line of groupHelp(command, groupCommands)) console.log(line);
+          return EXIT.ok;
+        }
+
         // A real group with no (or an unknown) command: list what it has rather
         // than repeating that the input was wrong.
         if (args[1]) console.error(`Unknown command: speko-cli ${command} ${args[1]}`);
