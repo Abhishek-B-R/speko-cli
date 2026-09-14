@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Point the README and the skill file `init` writes at `docs.speko.ai/cli`. The
+  section root used to 404 — the page was only reachable at `/cli/overview`.
+
 ## 0.1.2
 
 - `speko-cli <group> --help` now lists the group's operations and exits 0. It
@@ -16,7 +21,7 @@
 - Remove a stale README section describing a `--yes` flag that was never
   shipped, and a reference to `speko-cli keys create`, which is not a command.
 - Point at the CLI's new documentation section, which did not exist before:
-  https://docs.speko.ai/cli/overview. The CLI was absent from the docs site and
+  https://docs.speko.ai/cli. The CLI was absent from the docs site and
   from its `llms.txt` index entirely, so an agent following the old link found
   nothing about it.
 

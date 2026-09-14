@@ -212,4 +212,4 @@ terminal even though the same login works in both places.
 | `SPEKO_DASHBOARD_URL` | `https://platform.speko.ai` |
 | `XDG_CONFIG_HOME` | `~/.config` |
 
-Docs: <https://docs.speko.ai/cli/overview>
+Docs: <https://docs.speko.ai/cli>

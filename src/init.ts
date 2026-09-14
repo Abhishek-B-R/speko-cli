@@ -136,7 +136,7 @@ before debugging anything else:
 · \`5\` quota · \`6\` eval regression. Add \`--json\` to any command for
 machine-readable output.
 
-Docs: https://docs.speko.ai/cli/overview — the CLI's own pages, including
+Docs: https://docs.speko.ai/cli — the CLI's own pages, including
 evals, benchmarks and exit codes. Machine-readable index of the whole site at
 https://docs.speko.ai/llms.txt, and any page with \`.md\` appended returns
 markdown.

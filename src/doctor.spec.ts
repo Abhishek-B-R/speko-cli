@@ -132,7 +132,7 @@ describe('formatChecks', () => {
 });
 
 describe('assessAgents', () => {
-  const usable = ['csm', 'kotib', 'openai'];
+  const usable = ['csm', 'speko-uz', 'openai'];
   const voices = [
     { id: 'Ashley', vendor: 'inworld' },
     { id: 'alloy', vendor: 'openai' },
