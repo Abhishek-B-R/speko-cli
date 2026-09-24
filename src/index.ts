@@ -113,12 +113,14 @@ export function exitCodeForStatus(status: number): ExitCode {
 }
 
 interface Output {
+  readonly asJson: boolean;
   readonly text: (line: string) => void;
   readonly json: (value: unknown) => void;
 }
 
 function makeOutput(asJson: boolean): Output {
   return {
+    asJson,
     text: (line) => {
       if (!asJson) console.log(line);
     },
@@ -271,12 +273,13 @@ async function logs(out: Output, args: readonly string[]): Promise<ExitCode> {
     const timeoutSeconds = 600;
     // --json has no stream to write to, so the events are collected and
     // printed as one document at the end. Without this a --json follow
-    // printed nothing at all, and a timeout printed nothing either way.
+    // printed nothing at all, and a timeout printed nothing either way. Text
+    // mode prints each event as it arrives, so it keeps none of them.
     const streamed: CallEvent[] = [];
     const { timedOut } = await followEvents(id, {
       timeoutMs: timeoutSeconds * 1000,
       onEvent: (event) => {
-        streamed.push(event);
+        if (out.asJson) streamed.push(event);
         out.text(formatEvent(event));
       },
     });
