@@ -260,6 +260,60 @@ describe('followEvents', () => {
 
     expect(result).toEqual({ timedOut: true });
   });
+
+  it('checks the status once more after the deadline', async () => {
+    // The deadline passes during a pause, so a call that ends in that window
+    // used to be reported as still running and the events that closed it were
+    // never printed.
+    const clock = fakeClock();
+    const printed: string[] = [];
+    let statusPolls = 0;
+
+    const result = await followEvents('s', {
+      now: clock.now,
+      wait: clock.wait,
+      timeoutMs: 4_000,
+      intervalMs: 2_000,
+      fetchEvents: async () => ({
+        events:
+          statusPolls < 2
+            ? [{ id: 'e1', event_type: 'call.started', occurred_at: '' }]
+            : [
+                { id: 'e1', event_type: 'call.started', occurred_at: '' },
+                { id: 'e2', event_type: 'call.completed', occurred_at: '' },
+              ],
+      }),
+      fetchCall: async () => {
+        statusPolls += 1;
+        return { id: 's', status: statusPolls < 3 ? 'active' : 'completed' };
+      },
+      onEvent: (event) => printed.push(event.event_type),
+    });
+
+    expect(result).toEqual({ timedOut: false });
+    expect(printed).toEqual(['call.started', 'call.completed']);
+  });
+
+  it('still times out when the last check says the call is running', async () => {
+    const clock = fakeClock();
+    const printed: string[] = [];
+
+    const result = await followEvents('s', {
+      now: clock.now,
+      wait: clock.wait,
+      timeoutMs: 4_000,
+      intervalMs: 2_000,
+      fetchEvents: async () => ({
+        events: [{ id: 'e1', event_type: 'call.started', occurred_at: '' }],
+      }),
+      fetchCall: async () => ({ id: 's', status: 'active' }),
+      onEvent: (event) => printed.push(event.event_type),
+    });
+
+    expect(result).toEqual({ timedOut: true });
+    // Printed once: a re-fetch must not reprint an event already seen.
+    expect(printed).toEqual(['call.started']);
+  });
 });
 
 describe('transcriptTurns', () => {

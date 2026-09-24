@@ -6,6 +6,7 @@ import { fetchBench, formatBench, formatSessionBench, type SessionStack } from '
 import { builtinHelpFor, isHelpFlag, wantsHelp } from './builtin-help.js';
 import {
   buildCallBody,
+  type CallEvent,
   followEvents,
   formatEvent,
   formatTranscript,
@@ -268,15 +269,25 @@ async function logs(out: Output, args: readonly string[]): Promise<ExitCode> {
 
   if (flags['follow'] !== undefined) {
     const timeoutSeconds = 600;
+    // --json has no stream to write to, so the events are collected and
+    // printed as one document at the end. Without this a --json follow
+    // printed nothing at all, and a timeout printed nothing either way.
+    const streamed: CallEvent[] = [];
     const { timedOut } = await followEvents(id, {
       timeoutMs: timeoutSeconds * 1000,
-      onEvent: (event) => out.text(formatEvent(event)),
+      onEvent: (event) => {
+        streamed.push(event);
+        out.text(formatEvent(event));
+      },
     });
     if (timedOut) {
       out.text('');
       out.text(`  Still running after ${timeoutSeconds}s. Follow it again with:`);
       out.text(`  speko-cli logs ${id} --follow`);
     }
+    // `timed_out` is always present, so a script can branch on it without
+    // having to tell "still running" apart from "no such key".
+    out.json({ events: streamed, timed_out: timedOut });
     return EXIT.ok;
   }
 
