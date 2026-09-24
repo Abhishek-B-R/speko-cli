@@ -247,8 +247,16 @@ export interface FollowOptions {
  * them. Seen ids are tracked so a re-fetch does not reprint the log, and the
  * loop stops once the call itself has ended — a follow that ran forever on a
  * finished call would look like a hang.
+ *
+ * Events are fetched once more after the call is seen to end, because the ones
+ * that explain how it ended (a `call.failed` with its cause) usually land
+ * between the last events poll and the status check. A timeout is reported
+ * rather than returned silently, so the caller can say the call is still live.
  */
-export async function followEvents(id: string, options: FollowOptions): Promise<void> {
+export async function followEvents(
+  id: string,
+  options: FollowOptions,
+): Promise<{ timedOut: boolean }> {
   const intervalMs = options.intervalMs ?? 2_000;
   const timeoutMs = options.timeoutMs ?? 600_000;
   const now = options.now ?? Date.now;
@@ -259,16 +267,25 @@ export async function followEvents(id: string, options: FollowOptions): Promise<
   const seen = new Set<string>();
   const deadline = now() + timeoutMs;
 
-  while (now() < deadline) {
+  const drain = async (): Promise<void> => {
     const { events } = await fetchEvents(id);
     for (const event of events) {
       if (seen.has(event.id)) continue;
       seen.add(event.id);
       options.onEvent(event);
     }
+  };
+
+  while (now() < deadline) {
+    await drain();
 
     const call = await fetchCall(id);
-    if (isFinished(call)) return;
+    if (isFinished(call)) {
+      await drain();
+      return { timedOut: false };
+    }
     await pause(intervalMs);
   }
+
+  return { timedOut: true };
 }

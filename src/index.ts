@@ -267,7 +267,16 @@ async function logs(out: Output, args: readonly string[]): Promise<ExitCode> {
   }
 
   if (flags['follow'] !== undefined) {
-    await followEvents(id, { onEvent: (event) => out.text(formatEvent(event)) });
+    const timeoutSeconds = 600;
+    const { timedOut } = await followEvents(id, {
+      timeoutMs: timeoutSeconds * 1000,
+      onEvent: (event) => out.text(formatEvent(event)),
+    });
+    if (timedOut) {
+      out.text('');
+      out.text(`  Still running after ${timeoutSeconds}s. Follow it again with:`);
+      out.text(`  speko-cli logs ${id} --follow`);
+    }
     return EXIT.ok;
   }
 
